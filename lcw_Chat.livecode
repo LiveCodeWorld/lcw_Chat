@@ -2,12 +2,12 @@
 --> MetaData
 -
 license: GPLv3
-name: projectName
+name: lcw_Chat
 type: home
 version: 0.1
 
 
---> Events
+--> Props
 -
 getprop project_Deps
    return "lcw,lcw_Tools,lcw_Authoring,lcw_GIT"

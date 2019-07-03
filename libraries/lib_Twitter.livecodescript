@@ -16,7 +16,7 @@ function twitter_FetchPageJson tweetURL
    put "Imported Tweet" into pageTitle
    put "Here is a tweet imported from [[Twitter]]. Drag and drop into onto your desired page." into firstParagraph
    put fedwiki_ConstructNewPageArray (pageTitle, firstParagraph) into pageArray
-   fedwiki_AddHtmlToPageArray pageArray, blockquoteHTML
+   pageArray_AddHtml pageArray, blockquoteHTML
    --
    put json_FromArray (pageArray) into pageJSON
    return pageJSON
