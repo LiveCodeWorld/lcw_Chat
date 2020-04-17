@@ -8,20 +8,29 @@ version: 0.1
 
 --> Variables
 -
-constant TelegramBotToken = "bot286681349:AAHr4f5zLrPKEfpHIf5QfZIH9ftCpw8PWHA" -- api key
 constant BaseRestUrl = "https://api.telegram.org/"
-constant FetchhApiKey = "408326576:AAEXlvX7cPKsFizi-j9nKbLnqTlESdUyIEs"
 
-command url_EncodeItems @someURL
-   set the itemdelimiter to slash
-   repeat with itemNum = 1 to the number of items of someURL
-      put urlencode (item itemNum of someURL) into encodedValue
-      put encodedValue into item itemNum of someURL
-   end repeat
-end url_EncodeItems
+function telegram_GetApiKey
+   put secret_Get ("TelegramBotToken") into apiKey
+   return apiKey
+end telegram_GetApiKey
+
+command telegram_SetApiKey apiKey
+   secret_Set "TelegramBotToken", apiKey
+end telegram_SetApiKey
 
 
---> Telegram
+--> Display
+-
+command display_TelegramJson someURL
+   put url someURL into someJSON
+   -- display_JSON someJSON
+   put json_ToArray (someJSON) into someArray
+   display_Array someArray
+end display_TelegramJson
+
+
+--> FEAST
 -
 function telegram_FetchLastWebhook
    put url "https://rest.livecode.world/feast/feast_bot/get_webhook" into lastWebHookJson
@@ -29,7 +38,12 @@ function telegram_FetchLastWebhook
    return lastWebHookArray
 end telegram_FetchLastWebhook
 
+
+--> Telegram
+-
 function telegram_ConstructDownloadURL filePath
+   put telegram_GetApiKey() into TelegramBotToken
+   --
    replace space with "%20" in filePath
    url_EncodeItems filePath
    put merge ("https://api.telegram.org/file/[[TelegramBotToken]]/[[filePath]]") into downloadURL
@@ -71,12 +85,16 @@ function telegram_FetchTemporaryDownloadUrl itemArray
 end telegram_FetchTemporaryDownloadUrl
 
 function telegram_GetWebHook
+   put telegram_GetApiKey() into TelegramBotToken
+   --
    put BaseRestUrl & TelegramBotToken & "/getWebhookInfo" into someURL
    put url someURL into someResult
    return someResult
 end telegram_GetWebHook
 
 command telegram_SetWebHook webhookURL
+   put telegram_GetApiKey() into TelegramBotToken
+   --
    put BaseRestUrl & TelegramBotToken & "/setWebhook?url=" into someURL
    put urlEncode (webhookURL) after someURL
    put url someURL into someResult
@@ -84,12 +102,16 @@ command telegram_SetWebHook webhookURL
 end telegram_SetWebHook
 
 command telegram_DeleteWebHook
+   put telegram_GetApiKey() into TelegramBotToken
+   --
    put BaseRestUrl & TelegramBotToken & "/deleteWebhook" into someURL
    put url someURL into someResult
    return someResult
 end telegram_DeleteWebHook
 
 function telegram_FetchVoiceData fileID
+   put telegram_GetApiKey() into TelegramBotToken
+   --
    put telegram_FetchFileArray (fileID) into resultArray
    put resultArray ["file_path"] into filePath
    put resultArray ["file_size"] into fileSize
@@ -102,6 +124,8 @@ end telegram_FetchVoiceData
 
 command telegram_SendMessage someText, pChatID
    if pChatID is empty then put -176652117 into pChatID
+   put telegram_GetApiKey() into TelegramBotToken
+   --
    put urlEncode (someText) into encodeText
    
    put BaseRestUrl & TelegramBotToken & "/sendmessage?text=" into someURL
@@ -113,6 +137,8 @@ command telegram_SendMessage someText, pChatID
 end telegram_SendMessage
 
 function telegram_FetchUpdateArray pOffset
+   put telegram_GetApiKey() into TelegramBotToken
+   --
    if pOffset is not a number then
       put 0 into pOffset
    end if
@@ -131,10 +157,23 @@ function telegram_FetchFileArray fileID
    Note: This function may not preserve the original file name and MIME type. You should save the file's MIME type and name (if available) when the File object is received.
    */
    
+   put telegram_GetApiKey() into TelegramBotToken
+   --
    put BaseRestUrl & TelegramBotToken & "/getFile?file_id=" & fileID into someURL
    put json_FetchArray (someURL) into someArray
    return someArray
 end telegram_FetchFileArray
+
+
+--> Deps
+-
+command url_EncodeItems @someURL
+   set the itemdelimiter to slash
+   repeat with itemNum = 1 to the number of items of someURL
+      put urlencode (item itemNum of someURL) into encodedValue
+      put encodedValue into item itemNum of someURL
+   end repeat
+end url_EncodeItems
 
 function json_FetchArray someURL
    put url someURL into someJSON
@@ -146,10 +185,3 @@ function json_FetchArray someURL
       return empty
    end if
 end json_FetchArray
-
-command display_TelegramJson someURL
-   put url someURL into someJSON
-   -- display_JSON someJSON
-   put json_ToArray (someJSON) into someArray
-   display_Array someArray
-end display_TelegramJson

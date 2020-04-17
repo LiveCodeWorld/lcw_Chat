@@ -9,6 +9,13 @@ version: 0.3
 
 --> Global | Chat | Menu
 -
+on menu_AuthenticateZoom
+   zoom_Authenticate
+end menu_AuthenticateZoom
+
+on _
+end _
+
 on submenu_Telegram
    return "Global | Telegram | Menu"
 end submenu_Telegram
@@ -30,23 +37,21 @@ end menu_AuthenticateSlack
 on _
 end _
 
-on menu_SlackDocs mTarget, whichDocs
-   switch whichDocs
-      case "Building Slack apps"
-         launch url "https://api.slack.com/slack-apps"
-         break
-      case "Slack Web API"
-         launch url "https://api.slack.com/web"
-         break
-      case "Slack API Methods"
-         launch url "https://api.slack.com/methods"
-         break
-   end switch
-end menu_SlackDocs
+on submenu_SlackDocs
+   return "Docs | Menu"
+end submenu_SlackDocs
 
 
---> Global | Chat | Menu | Props
+--> Docs | Menu
 -
+on menu_BuildingSlackApps mTarget
+   launch url "https://api.slack.com/slack-apps"
+end menu_BuildingSlackApps
 
---> Global | Chat | Menu | Disabled
--
+on menu_SlackWebApi mTarget
+   launch url "https://api.slack.com/web"
+end menu_SlackWebApi
+
+on menu_SlackApiMethods mTarget
+   launch url "https://api.slack.com/methods"
+end menu_SlackApiMethods

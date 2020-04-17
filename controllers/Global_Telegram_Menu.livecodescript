@@ -9,7 +9,14 @@ version: 0.2
 --> Variables
 -
 constant BaseRestUrl = "https://api.telegram.org/"
-constant ApiKey = "bot286681349:AAHr4f5zLrPKEfpHIf5QfZIH9ftCpw8PWHA"
+local ApiKey
+
+
+-> Menu | Props
+-
+on menu_Init
+   put telegram_GetApiKey() into ApiKey
+end menu_Init
 
 
 --> Global | Telegram | Menu
@@ -103,12 +110,6 @@ on submenu_Dev
 end submenu_Dev
 
 
---> Global | Telegram | Menu | Props
--
-
---> Global | Telegram | Menu | Disabled
--
-
 --> Dev | Menu
 -
 on menu_SetWebHook
@@ -150,19 +151,19 @@ on menu_FedwikiFileList
    display_Array fileArray
 end menu_FedwikiFileList
 
+on menu_GetFile
+   put "AwADBAADYwADH5_gUW89lLBXHqhuAg" into fileID
+   put telegram_FetchFileArray (fileID) into someArray
+   display_Array someArray, "File Array", "Global | Telegram | Tree | Menu", "Global | Telegram | Line | Menu"
+end menu_GetFile
+
 on menu_SendMessage
-   -- https://api.telegram.org/bot000000000:AAAAa0aAA_aaA-Aaaa0A0Aa_a0aa0A0AAAA/sendmessage?text=Happy%20Little%20Clouds&chat_id=1111111111
    put lcw_Ask ("A test message.") into someMessage
    telegram_SendMessage someMessage
 end menu_SendMessage
 
 on _
 end _
-
-on menu_GetFile
-   put telegram_FetchFileArray ("AwADBAADYwADH5_gUW89lLBXHqhuAg") into someArray
-   display_Array someArray, "File Array", "Global | Telegram | Tree | Menu", "Global | Telegram | Line | Menu"
-end menu_GetFile
 
 on menu_TestVoice
    -- https://api.telegram.org/file/bot<token>/<file_path>

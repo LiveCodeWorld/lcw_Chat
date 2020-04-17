@@ -84,7 +84,7 @@ command slack_Authenticate pSlackClientID, pSlackClientSecret
       
       display_Array slackAuthArray
       
-      -- younow need to store the webhook for the channel
+      -- you now need to store the webhook for the channel
       put slackAuthArray ["incoming_webhook"]["url"] into webHookUrl
       put webHookUrl
       
@@ -145,8 +145,9 @@ end slack_SetClientID
 
 function slack_GetClientSecret
    if the environment = "server" then
-      put gConfig["slackClientID"] into dropBoxAuthToken
+      put gConfig["slackClientSecret"] into dropBoxAuthToken
    else
+      put secret_Get ("slackClientSecret", "rest") into slackClientSecret
       put pref_FetchValue ("slackClientSecret", "rest") into slackClientSecret
    end if
    return slackClientSecret
@@ -156,7 +157,7 @@ command slack_SetClientSecret slackClientSecret
    if the environment = "server" then
       -- this is only temporary
       -- need to figure out how best to store configs (maybe a json file)
-      rigSetConfigItem "slackClientSecret", slackClientSecret
+      -- rigSetConfigItem "slackClientSecret", slackClientSecret
    else
       pref_SaveValue "slackClientSecret", slackClientSecret, "rest"
    end if
