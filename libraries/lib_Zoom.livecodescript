@@ -15,11 +15,7 @@ Compare with "lib_DisplayGraph"
 -
 command zoom_Authenticate pClientID, pClientSecret
    -- https://marketplace.zoom.us/docs/guides/auth/oauth
-   -- OAuth2 endpoints are located at https://zoom.us/oauth/
-   
-   -- https://zoom.us/oauth/authorize?response_type=code&client_id=7lstjK9NTyett_oeXtFiEQ&redirect_uri=https://yourapp.com
-   
-   
+      
    constant kAuthURL = "https://zoom.us/oauth/authorize"
    constant kTokenURL = "https://zoom.us/oauth/token"
    local kScopes
@@ -121,3 +117,14 @@ function zoom_GetRest restURL
    put jsonrpc_GET (restURL, jwtToken) into someJSON
    return someJSON
 end zoom_GetRest
+
+
+--> Deps
+-
+function secret_Get secretName
+   -- for server use only
+   if the environment is not "server" then pass "secret_Get"
+   --
+   put rigFetchConfigItem (secretName) into someSecret
+   return someSecret
+end secret_Get

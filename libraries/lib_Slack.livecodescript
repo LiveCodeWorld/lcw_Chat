@@ -126,7 +126,7 @@ end slack_SetAuthToken
 
 function slack_GetClientID
    if the environment = "server" then
-      put gConfig["slackClientID"] into dropBoxAuthToken
+      put gConfig["slackClientID"] into slackClientID
    else
       put pref_FetchValue ("slackClientID", "rest") into slackClientID
    end if
@@ -135,11 +135,10 @@ end slack_GetClientID
 
 command slack_SetClientID slackClientID
    if the environment = "server" then
-      -- this is only temporary
       -- need to figure out how best to store configs (maybe a json file)
       rigSetConfigItem "slackClientID", slackClientID
    else
-      pref_SaveValue "slackClientID", slackClientID, "rest"
+      secret_Set "slackClientID", slackClientID
    end if
 end slack_SetClientID
 
@@ -162,3 +161,14 @@ command slack_SetClientSecret slackClientSecret
       pref_SaveValue "slackClientSecret", slackClientSecret, "rest"
    end if
 end slack_SetClientSecret
+
+
+--> Deps
+-
+function secret_Get secretName
+   -- for server use only
+   if the environment is not "server" then pass "secret_Get"
+   --
+   put rigFetchConfigItem (secretName) into someSecret
+   return someSecret
+end secret_Get
