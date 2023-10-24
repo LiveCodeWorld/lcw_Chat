@@ -11,53 +11,153 @@ version: 0.2
 -
 constant kSlackApiStem = "https://slack.com/api/"
 
+--> Slack
+-
+command slack_ChannelDataSetJoined @channelData, conversationID, sBoolean
+   put indexArray_Find (channelData, "id", conversationID) into indexNum
+   put sBoolean into channelData [indexNum]["is_member"]
+   return indexNum
+end slack_ChannelDataSetJoined
+
+function slack_BotJoinedChannel chanelName, channelData
+   put indexArray_GetNamed (channelData, chanelName, "is_member") into isMember
+   return isMember
+end slack_BotJoinedChannel
+
+function slack_ListJoinedChannelNames channelData
+   repeat with indexNum = 1 to item 2 of the extents of channelData
+      put channelData [indexNum]["is_member"] into isMember
+      if isMember is true then
+         put channelData [indexNum]["name"] & CR after joinedNames
+      end if
+   end repeat
+   delete char -1 of joinedNames
+   return joinedNames
+end slack_ListJoinedChannelNames
+
+
+--> Slack | Display
+-
+on mDoubleUp_SlackChannels displayView, channelName
+   put the view_Data of displayView into channelData
+   put indexArray_GetNamed (channelData, channelName, "id") into channelID
+   --
+   display_SlackConversation channelID
+end mDoubleUp_SlackChannels
+
+on mDoubleUp_SlackConversation displayView, someLine
+   breakpoint
+   put the title_Text of displayView into someTitle
+end mDoubleUp_SlackConversation
+
+command display_SlackChannels pDisplayView
+   -- put "?limit=20&types=public_channel&pretty=1" into pAfterBit
+   put slack_ListConversations() into rArray
+   
+   ## Check response
+   if rArray ["ok"] is not true then
+      breakpoint
+      exit to top
+   end if
+   
+   ## Display Channels
+   put rArray ["channels"] into channelData
+   -- display_IndexArray channelData, "Channels", "Slack", true
+   
+   ## Display Channel Names
+   display_SlackChannelData channelData, pDisplayView
+   put the result into displayView
+   --
+   display_SetMouseAndMenu displayView, "Slack | Channels", "lib_Slack"
+   return displayView
+end display_SlackChannels
+
+command display_SlackChannelData channelData, pDisplayView
+   lock screen
+   put indexArray_Names (channelData) into channelNames
+   --
+   display_Data channelNames, "Channels", "Slack", pDisplayView
+   put the result into displayView
+   set the view_Data of displayView to channelData
+   --
+   put slack_ListJoinedChannelNames (channelData) into joinedNames
+   set the coloured_Lines ["red"] of displayView to joinedNames
+   unlock screen
+   
+   return displayView
+end display_SlackChannelData
+
+command display_SlackConversation conversationID, pDisplayView, pAfterBit
+   put slack_GetConversationHistory (conversationID, pAfterBit) into rArray
+   -- display_Data rArray, conversationID, "Slack Conversation"
+   
+   ## Check response
+   if rArray ["ok"] is not true then
+      breakpoint
+      exit to top
+   end if
+   
+   ## Display Channels
+   put rArray ["messages"] into indexArray
+   --
+   display_IndexArray indexArray, "Messages", "Slack", true, "text", pDisplayView
+   put the result into displayView
+   display_SetMouseAndMenu displayView, "Slack | Conversation", "lib_Slack"
+   return displayView
+end display_SlackConversation
+
 
 --> Slack
 -
-command slack_SendMessage someMessage
-   /*
-   https://slack.com/api/
-   chat.postMessage?
-   token=xoxp-30525850577-217902599698-222059313280-441ef5dc6448811efab813e7baeb5d43&
-   channel=C0WFB754M&
-   text=Test%20from%20web%20site.
-   &pretty=1
-   */
-   
-   -- put urlencode (someMessage) into someMessage
-   put slack_GetAuthToken() into slackAuthToken
-   
-   -- put kSlackApiStem & "chat.postMessage" into restURL
-   
-   -- seems like you set up a webhook for a specific channel
-   -- put "https://hooks.slack.com/services/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" into restURL -- #fetchh
-   put "https://hooks.slack.com/services/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" into restURL -- # General
-   
-   put someMessage into jsonArray ["text"]
-   -- put "C0WFB754M" into jsonArray ["channel"]
+command slack_JoinChannel conversationID
+   put conversationID into postArray ["channel"]
+   put _PostAndReturn (postArray, "conversations.join") into rArray
+   return rArray
+end slack_JoinChannel
+
+command slack_LeaveChannel conversationID
+   put conversationID into postArray ["channel"]
+   return _PostAndReturn (postArray, "conversations.leave")
+end slack_LeaveChannel
+
+function slack_GetConversationHistory conversationID, pAfterBit
+   put conversationID into postArray ["channel"]
+   return _PostAndReturn (postArray, "conversations.history", pAfterBit)
+end slack_GetConversationHistory
+
+function slack_ListConversations pAfterBit
+   return _GetRestArray ("conversations.list", pAfterBit)
+end slack_ListConversations
+
+command slack_SendMessage someMessage, conversationID
+   put someMessage into postArray ["text"]
+   put conversationID into postArray ["channel"]
    --
-   put json_FromArray (jsonArray) into someJSON
-   
-   -- Content-Type' = 'application/json; charset=UTF-8
-   put "Content-type: application/json; charset=UTF-8" & CR & "Authorization: token " & slackAuthToken into oAuthHeaders
-   set the httpHeaders to oAuthHeaders
-   
-   post someJSON to url restURL
-   put it into responseJSON
-   -- should error check
-   
-   /*
-   put "?" & "token=" & slackAuthToken after restURL
-   put "&" & "channel=" & "C0WFB754M" after restURL
-   put "&" & "text=" & encodedMessage after restURL
-   --
-   put "&pretty=1" after restURL
-   put url restURL into responseJSON
-   */
-   
-   put responseJSON
-   return responseJSON
+   return _PostAndReturn (postArray, "chat.postMessage")
 end slack_SendMessage
+
+
+--> Slack | REST
+-
+private function _PostAndReturn postData, apiBit, pAfterBit
+   put _ConstructRestURL (apiBit, pAfterBit) into restURL
+   put slack_GetAuthToken() into slackAuthToken
+   --
+   return jsonrpc_PostArray (postData, restUrl, slackAuthToken)
+end _PostAndReturn
+
+private function _GetRestArray apiBit, pAfterBit
+   put _ConstructRestURL (apiBit, pAfterBit) into restURL
+   put slack_GetAuthToken() into slackAuthToken
+   put jsonrpc_GetArray (restURL, slackAuthToken) into rArray
+   return rArray
+end _GetRestArray
+
+private function _ConstructRestURL apiBit, pAfterBit
+   put kSlackApiStem & apiBit into restURL
+   put pAfterBit after restURL
+   return restURL
+end _ConstructRestURL
 
 
 --> Slack | Authenticate
@@ -138,7 +238,8 @@ command slack_SetClientID slackClientID
       -- need to figure out how best to store configs (maybe a json file)
       rigSetConfigItem "slackClientID", slackClientID
    else
-      secret_Set "slackClientID", slackClientID
+      -- secret_Set "slackClientID", slackClientID
+      pref_SaveValue "slackClientID", slackClientID, "rest"
    end if
 end slack_SetClientID
 

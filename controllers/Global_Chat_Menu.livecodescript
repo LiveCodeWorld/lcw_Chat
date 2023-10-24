@@ -23,12 +23,16 @@ end submenu_Telegram
 on _
 end _
 
-on menu_SendMessage
+on menu_MotiSlackChannels
+   display_SlackChannels
+end menu_MotiSlackChannels
+
+on menu_SendSlackMessage
    put lcw_Ask ("What do you want to send?") into someMessage
    
    slack_SendMessage someMessage
    put the result
-end menu_SendMessage
+end menu_SendSlackMessage
 
 on menu_AuthenticateSlack
    slack_Authenticate
