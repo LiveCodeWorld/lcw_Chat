@@ -74,7 +74,7 @@ end display_SlackChannels
 
 command display_SlackChannelData channelData, pDisplayView
    lock screen
-   put indexArray_Names (channelData) into channelNames
+   put indexArray_List (channelData) into channelNames
    --
    display_Data channelNames, "Channels", "Slack", pDisplayView
    put the result into displayView
@@ -135,29 +135,6 @@ command slack_SendMessage someMessage, conversationID
    --
    return _PostAndReturn (postArray, "chat.postMessage")
 end slack_SendMessage
-
-
---> Slack | REST
--
-private function _PostAndReturn postData, apiBit, pAfterBit
-   put _ConstructRestURL (apiBit, pAfterBit) into restURL
-   put slack_GetAuthToken() into slackAuthToken
-   --
-   return jsonrpc_PostArray (postData, restUrl, slackAuthToken)
-end _PostAndReturn
-
-private function _GetRestArray apiBit, pAfterBit
-   put _ConstructRestURL (apiBit, pAfterBit) into restURL
-   put slack_GetAuthToken() into slackAuthToken
-   put jsonrpc_GetArray (restURL, slackAuthToken) into rArray
-   return rArray
-end _GetRestArray
-
-private function _ConstructRestURL apiBit, pAfterBit
-   put kSlackApiStem & apiBit into restURL
-   put pAfterBit after restURL
-   return restURL
-end _ConstructRestURL
 
 
 --> Slack | Authenticate
@@ -262,6 +239,29 @@ command slack_SetClientSecret slackClientSecret
       pref_SaveValue "slackClientSecret", slackClientSecret, "rest"
    end if
 end slack_SetClientSecret
+
+
+--> Private
+-
+private function _PostAndReturn postData, apiBit, pAfterBit
+   put _ConstructRestURL (apiBit, pAfterBit) into restURL
+   put slack_GetAuthToken() into slackAuthToken
+   --
+   return jsonrpc_PostArray (postData, restUrl, slackAuthToken)
+end _PostAndReturn
+
+private function _GetRestArray apiBit, pAfterBit
+   put _ConstructRestURL (apiBit, pAfterBit) into restURL
+   put slack_GetAuthToken() into slackAuthToken
+   put jsonrpc_GetArray (restURL, slackAuthToken) into rArray
+   return rArray
+end _GetRestArray
+
+private function _ConstructRestURL apiBit, pAfterBit
+   put kSlackApiStem & apiBit into restURL
+   put pAfterBit after restURL
+   return restURL
+end _ConstructRestURL
 
 
 --> Deps
