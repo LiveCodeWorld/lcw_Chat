@@ -33,7 +33,7 @@ end display_TelegramJson
 --> FEAST
 -
 function telegram_FetchLastWebhook
-   put url "https://rest.livecode.world/feast/feast_bot/get_webhook" into lastWebHookJson
+   put url "http://rest.livecode.world/feast/feast_bot/get_webhook" into lastWebHookJson
    put json_ToArray (lastWebHookJson) into lastWebHookArray
    return lastWebHookArray
 end telegram_FetchLastWebhook
